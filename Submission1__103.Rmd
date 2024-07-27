@@ -1,0 +1,62 @@
+---
+title: "Submission_1_103"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+Create a git repository for your project and push at least once prior to the first presentation with all the code you are presenting in class. See grading breakdown for final submission and bonus for details.
+Identify one gene, one continuous covariate, and two categorical covariates in the provided dataset. Note: Gene expression data and metadata are in two separate files and will need to be linked.
+Generate the following three plots using ggplot2 for your covariates of choice:
+Histogram for gene expression (5 pts)    
+Scatterplot for gene expression and continuous covariate (5 pts)
+Boxplot of gene expression separated by both categorical covariates (5 pts)
+Present your scatterplot in class. Be prepared to explain the gene and covariate you chose and comment on the distribution as if you were presenting your research findings. No slides are required, just bring your plot. In class, be prepared to provide constructive feedback for your classmates (5 pts)
+Submit your clearly commented code and generated plots as a knitted R markdown file.
+
+
+```{r}
+#Convert genes into gene series
+
+setwd("/Users/deepthi/Documents/GitHub/Final_103_Project_LDG")
+Genes<- read_csv("QBS103_GSE157103_genes.csv")
+Genes_Series <- read_csv("QBS103_GSE157103_series_matrix.csv")
+
+
+
+```
+```{r}
+TGenes <-as.data.frame(t(Genes))
+names(TGenes) <- TGenes[1,]
+TGenes <- TGenes[-1,]
+TGenes$participant_id <- row.names(TGenes)
+
+MergedGenes <- merge(TGenes,Genes_Series, by = 'participant_id', all = TRUE) 
+
+
+
+```
+
+
+```{r}
+# pick a gene and two covariate
+library(tidyverse)
+
+Genes_CoVariate_Data <- MergedGenes %>%
+  select(ABI2,age,sex,icu_status) 
+
+```
+
+```{r}
+
+Genes_CoVariate_Data$ABI2 <- as.numeric()
+hist(Genes_CoVariate_Data$ABI2,)
+
+
+```
+
