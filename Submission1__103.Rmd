@@ -26,9 +26,6 @@ Submit your clearly commented code and generated plots as a knitted R markdown f
 setwd("/Users/deepthi/Documents/GitHub/Final_103_Project_LDG")
 Genes<- read_csv("QBS103_GSE157103_genes.csv")
 Genes_Series <- read_csv("QBS103_GSE157103_series_matrix.csv")
-
-
-
 ```
 ```{r}
 TGenes <-as.data.frame(t(Genes))
@@ -39,7 +36,6 @@ TGenes$participant_id <- row.names(TGenes)
 MergedGenes <- merge(TGenes,Genes_Series, by = 'participant_id', all = TRUE) 
 
 
-
 ```
 
 
@@ -48,15 +44,49 @@ MergedGenes <- merge(TGenes,Genes_Series, by = 'participant_id', all = TRUE)
 library(tidyverse)
 
 Genes_CoVariate_Data <- MergedGenes %>%
-  select(ABI2,age,sex,icu_status) 
+  select(ABCA3,age,sex,icu_status) 
 
 ```
 
 ```{r}
 
-Genes_CoVariate_Data$ABI2 <- as.numeric()
-hist(Genes_CoVariate_Data$ABI2,)
+Genes_CoVariate_Data$ABCA3 <- as.numeric(Genes_CoVariate_Data$ABCA3)
+hist(Genes_CoVariate_Data$ABCA3,main = 'ABCA3- Gene Expression Data',xlab = 'Gene Expression', col = "Red")
 
+```
+
+```{r}
+#Scatterplot for gene expression and continuous covariate (5 pts)
+
+Genes_CoVariate_Data$age[Genes_CoVariate_Data$age== ">89"] <- 90
+Genes_CoVariate_Data$age <- as.numeric(Genes_CoVariate_Data$age)
+
+library(ggplot2)
+Genes_CoVariate_Data$AgeGroup <- cut(Genes_CoVariate_Data$age,breaks = c(0,30,40,50,60,70,80,90),
+                           labels = c('Under 30','30-40','40-50','50-60','60-70','70-80','>80'))
+
+ggplot(Genes_CoVariate_Data,aes(x = age,y =ABCA3, color=AgeGroup)) + 
+  geom_point() +
+  labs(title= 'Gene Expression of ABCA3 By Age' ,x = 'Age (yrs)',y = 'ABCA3 Gene Expression') + theme_classic()
+ 
+```
+
+```{r}
+#Boxplot of gene expression separated by both categorical covariates (5 pts)
+
+Genes_CoVariate_Data[Genes_CoVariate_Data== "unknown"] <- NA
+Genes_CoVariate_Data<- na.omit(Genes_CoVariate_Data)
+# Generate boxplot using theme 
+colorPalette = c('light blue',' maroon')
+
+ggplot(Genes_CoVariate_Data, aes(x = sex,y= ABCA3, fill=icu_status)) + 
+  # Add box plot
+  geom_boxplot() +
+  scale_fill_manual(values= colorPalette) +
+  scale_x_discrete(labels = c("Female”", "Male"))+
+  # Change labels
+  labs(title ='Gene Expression of ABCA3 by Sex and ICU Status', x = 'Sex',y = 'Gene Expression',fill = 'ICU Status') +
+  theme_classic()
 
 ```
 
