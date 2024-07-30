@@ -22,69 +22,87 @@ Submit your clearly commented code and generated plots as a knitted R markdown f
 
 ```{r}
 #Convert genes into gene series
-
 setwd("/Users/deepthi/Documents/GitHub/Final_103_Project_LDG")
+# read in genes file
 Genes<- read_csv("QBS103_GSE157103_genes.csv")
+#read in Gene Series file
 Genes_Series <- read_csv("QBS103_GSE157103_series_matrix.csv")
 ```
+
 ```{r}
+
+#transpose gene data to put participant id as rows and genes as columns 
 TGenes <-as.data.frame(t(Genes))
+# rearrange table to make gene names as column names instead of row names
 names(TGenes) <- TGenes[1,]
+#remove repetitive first column with genes
 TGenes <- TGenes[-1,]
+#create a column with the row names( participant ids)to merge with gene series file
 TGenes$participant_id <- row.names(TGenes)
-
+# Merge Gene and Gene Series tables by participant_id 
 MergedGenes <- merge(TGenes,Genes_Series, by = 'participant_id', all = TRUE) 
-
 
 ```
 
 
 ```{r}
-# pick a gene and two covariate
+#load in tidyverse to filter table
 library(tidyverse)
 
+#pull out ABCA3 gene expression data, Age data, and ICU_Data information and save into new data frame 
 Genes_CoVariate_Data <- MergedGenes %>%
   select(ABCA3,age,sex,icu_status) 
 
 ```
 
 ```{r}
-
+#convert gene expression to numeric data points
 Genes_CoVariate_Data$ABCA3 <- as.numeric(Genes_CoVariate_Data$ABCA3)
-hist(Genes_CoVariate_Data$ABCA3,main = 'ABCA3- Gene Expression Data',xlab = 'Gene Expression', col = "Red")
+# plot histogram of gene expression data
+hist(Genes_CoVariate_Data$ABCA3,main = 'ABCA3- Gene Expression Data',xlab = 'Gene Expression', col = "light blue")
 
 ```
 
 ```{r}
 #Scatterplot for gene expression and continuous covariate (5 pts)
 
+# replace over >89 data to 90 in order to have all age values as numeric
 Genes_CoVariate_Data$age[Genes_CoVariate_Data$age== ">89"] <- 90
+#convert age col to numeric data
 Genes_CoVariate_Data$age <- as.numeric(Genes_CoVariate_Data$age)
 
+# load ggplot package
 library(ggplot2)
+# create age groups based on age  values
 Genes_CoVariate_Data$AgeGroup <- cut(Genes_CoVariate_Data$age,breaks = c(0,30,40,50,60,70,80,90),
                            labels = c('Under 30','30-40','40-50','50-60','60-70','70-80','>80'))
 
-ggplot(Genes_CoVariate_Data,aes(x = age,y =ABCA3, color=AgeGroup)) + 
+# plot scatter plot of Gene Expression of ABCA3 By Age
+ggplot(Genes_CoVariate_Data,aes(x= age,y= ABCA3, color= AgeGroup)) + 
   geom_point() +
-  labs(title= 'Gene Expression of ABCA3 By Age' ,x = 'Age (yrs)',y = 'ABCA3 Gene Expression') + theme_classic()
+  labs(title= 'Gene Expression of ABCA3 By Age' ,x = 'Age (yrs)',y = 'ABCA3 Gene Expression', color = "Age Group") + theme_classic()
  
 ```
 
 ```{r}
 #Boxplot of gene expression separated by both categorical covariates (5 pts)
 
+# remove unknown values from data set
 Genes_CoVariate_Data[Genes_CoVariate_Data== "unknown"] <- NA
 Genes_CoVariate_Data<- na.omit(Genes_CoVariate_Data)
-# Generate boxplot using theme 
+
+# add color pallete to color boxplots
 colorPalette = c('light blue',' maroon')
 
+# creatre box plots to show Gene Expression of ABCA3 by Sex and ICU Statu
 ggplot(Genes_CoVariate_Data, aes(x = sex,y= ABCA3, fill=icu_status)) + 
   # Add box plot
   geom_boxplot() +
+  # add colorrs
   scale_fill_manual(values= colorPalette) +
+  # change x value labels
   scale_x_discrete(labels = c("Female”", "Male"))+
-  # Change labels
+  # Change axis lables
   labs(title ='Gene Expression of ABCA3 by Sex and ICU Status', x = 'Sex',y = 'Gene Expression',fill = 'ICU Status') +
   theme_classic()
 
