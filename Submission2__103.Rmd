@@ -1,5 +1,5 @@
 ---
-title: "Submission_1_103"
+title: "Submission_2_103"
 output: pdf_document
 ---
 
@@ -15,17 +15,12 @@ Make sure you push your code to your git repository prior to class. As a reminde
 
 ```{r}
 #Convert genes into gene series
-
 library(readr)
 setwd("/Users/deepthi/Documents/GitHub/Final_103_Project_LDG")
 # read in genes file
 Genes<- read_csv("QBS103_GSE157103_genes.csv")
 #read in Gene Series file
 Genes_Series <- read_csv("QBS103_GSE157103_series_matrix.csv")
-```
-
-
-```{r}
 
 #transpose gene data to put participant id as rows and genes as columns 
 TGenes <-as.data.frame(t(Genes))
@@ -37,7 +32,6 @@ TGenes <- TGenes[-1,]
 TGenes$participant_id <- row.names(TGenes)
 # Merge Gene and Gene Series tables by participant_id 
 MergedGenes <- merge(TGenes,Genes_Series, by = 'participant_id', all = TRUE) 
-
 ```
 
 #Build a function to create the plots you made for Presentation 1, incorporating any feedback you received on your submission. Your functions should take the following input: (1) the name of the data frame, (2) a list of 1 or more gene names, (3) 1 continuous covariate, and (4) two categorical covariates (10 pts)
@@ -52,7 +46,6 @@ GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
   Genes_CoVariate_Data <- df %>%
     select(all_of(c(geneName, Cont, Cat1, Cat2))) %>%
     as.data.frame()
-  
   # Convert gene expression column to numeric
   Genes_CoVariate_Data[[geneName]] <- as.numeric(Genes_CoVariate_Data[[geneName]])
   
@@ -62,7 +55,6 @@ GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
   print(histograms)
   # Replace age values greater than 89 with 90
   Genes_CoVariate_Data[[Cont]][Genes_CoVariate_Data[[Cont]] == ">89"] <- 90
-  
   # Convert continuous column to numeric
   Genes_CoVariate_Data[[Cont]] <- as.numeric(Genes_CoVariate_Data[[Cont]])
   
@@ -74,7 +66,7 @@ GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
   # Plot scatter plot of gene expression by age
   Scatterplot <- ggplot(Genes_CoVariate_Data, aes(x = !!sym(Cont), y = !!sym(geneName), color = AgeGroup)) +
     geom_point() +
-    labs(title = paste('Gene Expression of', geneName, 'by', Cat1),
+    labs(title = paste('Gene Expression of', geneName, 'by', Cont),
          x = 'Age (yrs)',
          y = paste(geneName, 'Gene Expression'),
          color = "Age Group") +
@@ -82,7 +74,7 @@ GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
   print(Scatterplot)
   
   # remove unknown values from data set
-  Genes_CoVariate_Data[Genes_CoVariate_Data== "unknown"] <- NA
+  Genes_CoVariate_Data[Genes_CoVariate_Data == "unknown"] <- NA
   Genes_CoVariate_Data<- na.omit(Genes_CoVariate_Data)
 
 # add color pallete to color boxplots
@@ -103,7 +95,9 @@ GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
   
 }
 
+#
 GeneNames <- c('ABCA3')
+#run Gene Plots function
 GenePlots(MergedGenes, GeneNames, 'age', 'sex', 'icu_status')
 
 ```
@@ -112,6 +106,7 @@ GenePlots(MergedGenes, GeneNames, 'age', 'sex', 'icu_status')
 ```{r}
 
 GeneNames <- c('ABCA3','ABHD1','AASS')
+
 for(i in 1:length(GeneNames)) {
   GenePlots(MergedGenes, GeneNames[i], 'age', 'sex', 'icu_status')
 }
