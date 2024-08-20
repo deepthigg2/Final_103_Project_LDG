@@ -1,0 +1,235 @@
+---
+title: "Submission_2_103"
+output: pdf_document
+---
+
+## R Markdown
+
+```{r}
+#Convert genes into gene series
+library(readr)
+setwd("/Users/deepthi/Documents/GitHub/Final_103_Project_LDG")
+# read in genes file
+Genes<- read_csv("QBS103_GSE157103_genes.csv")
+#read in Gene Series file
+Genes_Series <- read_csv("QBS103_GSE157103_series_matrix.csv")
+
+#transpose gene data to put participant id as rows and genes as columns 
+TGenes <-as.data.frame(t(Genes))
+# rearrange table to make gene names as column names instead of row names
+names(TGenes) <- TGenes[1,]
+#remove repetitive first column with genes
+TGenes <- TGenes[-1,]
+#create a column with the row names( participant ids)to merge with gene series file
+TGenes$participant_id <- row.names(TGenes)
+# Merge Gene and Gene Series tables by participant_id 
+MergedGenes <- merge(TGenes,Genes_Series, by = 'participant_id', all = TRUE) 
+row.names(MergedGenes) <- MergedGenes$participant_id
+```
+Generate a table formatted in LaTeX of summary statistics for all the covariates you
+looked at and 2 additional continuous (3 total) and 1 additional categorical variable (3
+total). (5 pts)
+o Stratifying by one of your categorical variables
+o Tables should report n (%) for categorical variables
+o Tables should report mean (sd) or median [IQR] for continuous variables
+
+Generate final histogram, scatter plot, and boxplot from submission 1 (i.e. only for your
+first gene of interest) incorporating all feedback from your presentations (5 pts)
+Generate a heatmap (5 pts)
+o Heatmap should include at least 10 genes
+o Include tracking bars for the 2 categorical covariates in your boxplot
+o Heatmaps should include clustered rows and columns
+
+Going through the documentation for
+ggplot2, generate a plot type that we did not
+previously discuss in class that describes your data in a new and unique way
+
+```{r}
+
+library(dplyr)
+library(tidyverse)
+
+
+Genes_CoVariate_Data_3_3 <- MergedGenes %>%
+    select(age, sex,icu_status,disease_status,`hospital-free_days_post_45_day_followup`,`ventilator-free_days`) 
+
+Genes_CoVariate_Data_3_3$age[Genes_CoVariate_Data_3_3$age== ">89"] <- 90
+
+#convert continuous column to numeric type to numeric data
+Genes_CoVariate_Data_3_3$age <- as.numeric(Genes_CoVariate_Data_3_3$age)
+Genes_CoVariate_Data_3_3$`hospital-free_days_post_45_day_followup` <- as.numeric( Genes_CoVariate_Data_3_3$`hospital-free_days_post_45_day_followup`)
+Genes_CoVariate_Data_3_3$`ventilator-free_days` <- as.numeric( Genes_CoVariate_Data_3_3$`ventilator-free_days`)
+ 
+# check distribution of continuous variables to decide whether to use mean/sd or median/IQR
+Age <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = age)) +
+  geom_histogram(binwidth = 5) + 
+  labs(x = 'Age',y = 'Frequency') +
+  theme_classic()
+print(Age)
+
+hospital_free_days <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = `hospital-free_days_post_45_day_followup`)) +
+  geom_histogram(binwidth = 5) + 
+  labs(x = 'hospital-free_days_post_45_day_followup',y = 'Frequency') +
+  theme_classic()
+print(hospital_free_days)
+
+ventilator_free_days <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = `ventilator-free_days`)) + geom_histogram(binwidth = 5) + 
+    labs(x = 'ventilator-free_days',y = 'Frequency') +
+    theme_classic()
+print(ventilator_free_days)
+
+```
+
+
+```{r}
+
+Genes_CoVariate_Data_3_3
+rows = nrow(Genes_CoVariate_Data_3_3)
+summary_table <- Genes_CoVariate_Data_3_3  %>%
+  group_by(sex) %>%
+  summarise(
+  
+    Median_age = median(age, na.rm = TRUE),
+    IQR_Age = IQR(age, na.rm = TRUE),
+    
+    Median_Hospital_Followup = median(`hospital-free_days_post_45_day_followup`, na.rm = TRUE),
+    IQR_Hospital_Followup = IQR(`hospital-free_days_post_45_day_followup`, na.rm = TRUE),
+    
+    Median_ventilator= median(`ventilator-free_days`, na.rm = TRUE),
+    IQR_ventilator = IQR(`ventilator-free_days`, na.rm = TRUE),
+    
+    COVID_Disease_Status = (sum(disease_status == "disease state: COVID-19", na.rm = TRUE)/rows)*100,
+    Non_COVID_Disease_Status  = (sum(disease_status == "disease state: non-COVID-19", na.rm = TRUE) /rows)*100,
+  
+    ICU_Status_Yes = (sum(icu_status == "yes", na.rm = TRUE)/rows)*100,
+    ICU_Status_No = (sum(icu_status == "no", na.rm = TRUE) /rows)*100
+    
+  ) 
+
+as.data.frame(t(summary_table))
+
+tab <- kable(x = table1, caption = 'Summary Table',
+             format = 'latex',booktabs = T,
+             col.names = c("Variable", "n = 40"),
+             align = c('l','r'),escape = T) %>%
+  add_indent(positions = c(3,4),level_of_indent = 1)
+
+
+```
+Generate final histogram, scatter plot, and boxplot from submission 1 (i.e. only for your
+first gene of interest) incorporating all feedback from your presentations (5 pts)
+```{r}
+
+  histograms <- hist(Genes_CoVariate_Data[[geneName]], 
+      main = paste(geneName, 'Gene Expression Data'), xlab = 'Gene Expression', col = "light blue")
+  print(histograms)
+
+```
+
+#Build a function to create the plots you made for Presentation 1, incorporating any feedback you received on your submission. Your functions should take the following input: (1) the name of the data frame, (2) a list of 1 or more gene names, (3) 1 continuous covariate, and (4) two categorical covariates (10 pts)
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
+  # Pull out gene expression data, continuous covariate, and categorical data
+  geneName <- geneName[[1]]  # Assumes geneName is a single-element list
+  Genes_CoVariate_Data <- df %>%
+    select(all_of(c(geneName, Cont, Cat1, Cat2))) %>%
+    as.data.frame()
+  # Convert gene expression column to numeric
+  Genes_CoVariate_Data[[geneName]] <- as.numeric(Genes_CoVariate_Data[[geneName]])
+  
+  # Plot histogram of gene expression data
+  histograms <- hist(Genes_CoVariate_Data[[geneName]], 
+      main = paste(geneName, 'Gene Expression Data'), xlab = 'Gene Expression', col = "light blue")
+  print(histograms)
+  # Replace age values greater than 89 with 90
+  Genes_CoVariate_Data[[Cont]][Genes_CoVariate_Data[[Cont]] == ">89"] <- 90
+  # Convert continuous column to numeric
+  Genes_CoVariate_Data[[Cont]] <- as.numeric(Genes_CoVariate_Data[[Cont]])
+  
+  # Create age groups
+  Genes_CoVariate_Data$AgeGroup <- cut(Genes_CoVariate_Data[[Cont]],
+                                        breaks = c(0, 30, 40, 50, 60, 70, 80, 90),
+                                        labels = c('Under 30', '30-40', '40-50', '50-60', '60-70', '70-80', '>80'))
+  
+  # Plot scatter plot of gene expression by age
+  Scatterplot <- ggplot(Genes_CoVariate_Data, aes(x = !!sym(Cont), y = !!sym(geneName), color = AgeGroup)) +
+    geom_point() +
+    labs(title = paste('Gene Expression of', geneName, 'by', Cont),
+         x = 'Age (yrs)',
+         y = paste(geneName, 'Gene Expression'),
+         color = "Age Group") +
+    theme_classic()
+  print(Scatterplot)
+  
+  # remove unknown values from data set
+  Genes_CoVariate_Data[Genes_CoVariate_Data == "unknown"] <- NA
+  Genes_CoVariate_Data<- na.omit(Genes_CoVariate_Data)
+
+# add color pallete to color boxplots
+  colorPalette = c('light blue',' maroon')
+
+# create box plots to show Gene Expression of ABCA3 by Sex and ICU Status
+  boxPlots <- ggplot(Genes_CoVariate_Data, aes(x = !!sym(Cat1), y=!!sym(geneName), fill= !!sym(Cat2)) )+ 
+    # Add box plot
+    geom_boxplot() +
+    # add colors
+    scale_fill_manual(values= colorPalette) +
+    # change x value labels
+    scale_x_discrete(labels = c("Female", "Male"))+
+    # Change axis labels
+    labs(title =paste('Gene Expression of',geneName,'by', Cat1,'and', Cat2), x = Cat1,y = 'Gene Expression',fill = Cat2) +
+    theme_classic()
+  print(boxPlots)}
+
+GeneNames <- c('ABCA3')
+#run Gene Plots function
+GenePlots(MergedGenes, GeneNames, 'age', 'sex', 'icu_status')
+
+```
+
+Generate a heatmap (5 pts) 
+o Heatmap should include at least 10 genes
+o Include tracking bars for the 2 categorical covariates in your boxplot
+o Heatmaps should include clustered rows and columns
+
+
+``` {r}
+library(pheatmap)
+
+color1 <- c( "male" = "blue","female" = "pink", "unknown" = "gray")
+color2 <- c("yes" = 'yellow', "no" = 'green')
+
+# Prepare annotation data
+annotation_rows<- data.frame(
+  sex = MergedGenes$sex,
+  icu_status = MergedGenes$icu_status
+)
+rownames(annotation_rows) <- rownames(MergedGenes)
+
+unique(MergedGenes$sex)
+
+annotation_colorss <- list(
+  sex = color1,
+  icu_status = color2
+)
+
+# Generate heatmap
+
+Genes_numeric_df<- as.data.frame(apply(MergedGenes[,31:41],MARGIN = 2, function(x) {as.numeric(x)}))
+row.names(Genes_numeric_df) <- rownames(MergedGenes)
+
+
+
+pheatmap(mat=Genes_numeric_df,
+         show_rownames = F,
+         cluster_rows = T,
+         cluster_cols = T,
+         annotation_row = annotation_rows,
+         annotation_colors = annotation_colorss)
+
+```
+
