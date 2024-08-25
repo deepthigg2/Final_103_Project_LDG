@@ -49,9 +49,8 @@ previously discuss in class that describes your data in a new and unique way
 library(dplyr)
 library(tidyverse)
 
-
 Genes_CoVariate_Data_3_3 <- MergedGenes %>%
-    select(age, sex,icu_status,disease_status,`hospital-free_days_post_45_day_followup`,`ventilator-free_days`) 
+   select(age, sex,icu_status,disease_status,`hospital-free_days_post_45_day_followup`,`ventilator-free_days`) 
 
 Genes_CoVariate_Data_3_3$age[Genes_CoVariate_Data_3_3$age== ">89"] <- 90
 
@@ -60,73 +59,65 @@ Genes_CoVariate_Data_3_3$age <- as.numeric(Genes_CoVariate_Data_3_3$age)
 Genes_CoVariate_Data_3_3$`hospital-free_days_post_45_day_followup` <- as.numeric( Genes_CoVariate_Data_3_3$`hospital-free_days_post_45_day_followup`)
 Genes_CoVariate_Data_3_3$`ventilator-free_days` <- as.numeric( Genes_CoVariate_Data_3_3$`ventilator-free_days`)
  
-# check distribution of continuous variables to decide whether to use mean/sd or median/IQR
-Age <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = age)) +
-  geom_histogram(binwidth = 5) + 
+#check distribution of continuous variables to decide whether to use mean/sd or median/IQR
+Age <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = age))+
+  geom_histogram(binwidth = 5)+  
   labs(x = 'Age',y = 'Frequency') +
   theme_classic()
 print(Age)
 
-hospital_free_days <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = `hospital-free_days_post_45_day_followup`)) +
+hospital_free_days <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = `hospital-free_days_post_45_day_followup`))+
   geom_histogram(binwidth = 5) + 
-  labs(x = 'hospital-free_days_post_45_day_followup',y = 'Frequency') +
+  labs(x ='hospital-free_days_post_45_day_followup', y = 'Frequency') +
   theme_classic()
 print(hospital_free_days)
 
-ventilator_free_days <- ggplot(data = Genes_CoVariate_Data_3_3,aes(x = `ventilator-free_days`)) + geom_histogram(binwidth = 5) + 
-    labs(x = 'ventilator-free_days',y = 'Frequency') +
+ventilator_free_days <- ggplot(data = Genes_CoVariate_Data_3_3, aes(x = `ventilator-free_days`))+
+    geom_histogram(binwidth = 5)+ 
+    labs(x ='ventilator-free_days',y = 'Frequency')+
     theme_classic()
 print(ventilator_free_days)
 
 ```
 
+Generate a table formatted in LaTeX of summary statistics for all the covariates you
+looked at and 2 additional continuous (3 total) and 1 additional categorical variable (3
+total). (5 pts)
+o Stratifying by one of your categorical variables
+o Tables should report n (%) for categorical variables
+o Tables should report mean (sd) or median [IQR] for continuous variables
 
 ```{r}
-
-Genes_CoVariate_Data_3_3
-rows = nrow(Genes_CoVariate_Data_3_3)
+library(kableExtra)
 summary_table <- Genes_CoVariate_Data_3_3  %>%
-  group_by(sex) %>%
+  group_by(sex)  %>%
   summarise(
-  
-    Median_age = median(age, na.rm = TRUE),
+    Median_Age = median(age, na.rm = TRUE),
     IQR_Age = IQR(age, na.rm = TRUE),
-    
-    Median_Hospital_Followup = median(`hospital-free_days_post_45_day_followup`, na.rm = TRUE),
-    IQR_Hospital_Followup = IQR(`hospital-free_days_post_45_day_followup`, na.rm = TRUE),
-    
-    Median_ventilator= median(`ventilator-free_days`, na.rm = TRUE),
-    IQR_ventilator = IQR(`ventilator-free_days`, na.rm = TRUE),
-    
-    COVID_Disease_Status = (sum(disease_status == "disease state: COVID-19", na.rm = TRUE)/rows)*100,
-    Non_COVID_Disease_Status  = (sum(disease_status == "disease state: non-COVID-19", na.rm = TRUE) /rows)*100,
-  
-    ICU_Status_Yes = (sum(icu_status == "yes", na.rm = TRUE)/rows)*100,
-    ICU_Status_No = (sum(icu_status == "no", na.rm = TRUE) /rows)*100
-    
-  ) 
+    Median_hospital_free_days= median(`hospital-free_days_post_45_day_followup`,na.rm=TRUE),
+    IQR_hospital_free_days = IQR(`hospital-free_days_post_45_day_followup`, na.rm = TRUE),
+    Median_ventilator_free_days= median(`ventilator-free_days`, na.rm = TRUE),
+    IQR_ventilator_free_days = IQR(`ventilator-free_days`, na.rm = TRUE),
+    ICU_Status_Yes = round((sum(icu_status == "yes", na.rm = TRUE)/rows)*100,2), 
+    ICU_Status_No = round((sum(icu_status == "no", na.rm = TRUE) /rows)*100,2),
+        COVID_Disease_Status = round((sum(disease_status == "disease state: COVID-19", na.rm = TRUE)/rows)*100,2),
+    Non_COVID_Disease_Status  = round((sum(disease_status == "disease state: non-COVID-19", na.rm = TRUE) /rows)*100,2)
+    )
 
-as.data.frame(t(summary_table))
+Summary_table_t <- as.data.frame(t(summary_table))
+names(Summary_table_t) <- Summary_table_t[1,]
+Summary_table_t <- Summary_table_t[-1,]
 
-tab <- kable(x = table1, caption = 'Summary Table',
+tab <- kable(x = Summary_table_t, caption = 'Summary Table',
              format = 'latex',booktabs = T,
-             col.names = c("Variable", "n = 40"),
+             col.names = c("Female", "Male","Unknown" ),
              align = c('l','r'),escape = T) %>%
   add_indent(positions = c(3,4),level_of_indent = 1)
-
-
+tab
 ```
+
 Generate final histogram, scatter plot, and boxplot from submission 1 (i.e. only for your
 first gene of interest) incorporating all feedback from your presentations (5 pts)
-```{r}
-
-  histograms <- hist(Genes_CoVariate_Data[[geneName]], 
-      main = paste(geneName, 'Gene Expression Data'), xlab = 'Gene Expression', col = "light blue")
-  print(histograms)
-
-```
-
-#Build a function to create the plots you made for Presentation 1, incorporating any feedback you received on your submission. Your functions should take the following input: (1) the name of the data frame, (2) a list of 1 or more gene names, (3) 1 continuous covariate, and (4) two categorical covariates (10 pts)
 
 ```{r}
 library(dplyr)
@@ -158,7 +149,7 @@ GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
   # Plot scatter plot of gene expression by age
   Scatterplot <- ggplot(Genes_CoVariate_Data, aes(x = !!sym(Cont), y = !!sym(geneName), color = AgeGroup)) +
     geom_point() +
-    labs(title = paste('Gene Expression of', geneName, 'by', Cont),
+    labs(title = paste('Gene Expression of', geneName, 'by Age'),
          x = 'Age (yrs)',
          y = paste(geneName, 'Gene Expression'),
          color = "Age Group") +
@@ -181,7 +172,7 @@ GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
     # change x value labels
     scale_x_discrete(labels = c("Female", "Male"))+
     # Change axis labels
-    labs(title =paste('Gene Expression of',geneName,'by', Cat1,'and', Cat2), x = Cat1,y = 'Gene Expression',fill = Cat2) +
+    labs(title =paste('Gene Expression of',geneName,'by Sex and ICU Status'), x = 'Sex',y = 'Gene Expression',fill = 'ICU Status') +
     theme_classic()
   print(boxPlots)}
 
@@ -200,17 +191,18 @@ o Heatmaps should include clustered rows and columns
 ``` {r}
 library(pheatmap)
 
-color1 <- c( "male" = "blue","female" = "pink", "unknown" = "gray")
-color2 <- c("yes" = 'yellow', "no" = 'green')
-
 # Prepare annotation data
 annotation_rows<- data.frame(
   sex = MergedGenes$sex,
   icu_status = MergedGenes$icu_status
 )
-rownames(annotation_rows) <- rownames(MergedGenes)
 
+rownames(annotation_rows) <- rownames(MergedGenes)
 unique(MergedGenes$sex)
+
+
+color1 <- c( "male" = "blue","female" = "pink", "unknown" = "gray")
+color2 <- c("yes" = 'yellow', "no" = 'green')
 
 annotation_colorss <- list(
   sex = color1,
@@ -218,11 +210,8 @@ annotation_colorss <- list(
 )
 
 # Generate heatmap
-
 Genes_numeric_df<- as.data.frame(apply(MergedGenes[,31:41],MARGIN = 2, function(x) {as.numeric(x)}))
 row.names(Genes_numeric_df) <- rownames(MergedGenes)
-
-
 
 pheatmap(mat=Genes_numeric_df,
          show_rownames = F,
@@ -232,4 +221,26 @@ pheatmap(mat=Genes_numeric_df,
          annotation_colors = annotation_colorss)
 
 ```
+Going through the documentation for
+ggplot2, generate a plot type that we did not
+previously discuss in class that describes your data in a new and unique way
+
+```{r}
+
+Genes_CoVariate_Data <- MergedGenes %>%
+  select(ABCA3,age,sex,icu_status) 
+
+#install.packages("ggbeeswarm")
+library(ggbeeswarm)
+Genes_CoVariate_Data$ABCA3 <- as.numeric(Genes_CoVariate_Data$ABCA3 )
+# Create a swarm plot
+ggplot(Genes_CoVariate_Data, aes(x = interaction(sex, icu_status), y = ABCA3, color = interaction(sex, icu_status))) +
+  geom_beeswarm(alpha = 1) +
+  labs(title = "Beeswarm Plot of ABCA3 Gene Expression by Sex and ICU Status", 
+       x = "Sex and ICU Status", 
+       y = "Gene Expression", color= "Sex and ICU Status (sex.icu_status)") +
+  theme_minimal()
+```
+
+
 
