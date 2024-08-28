@@ -1,0 +1,120 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{booktabs}
+\usepackage{geometry} %for defining page layout
+\geometry{total = {8.5in,11in}, margin=1in}
+\usepackage{caption} 
+\usepackage{cite}
+
+\title{Final Submission Report}
+\author{Lakshmi Deepthi Gangiredla }
+\date{August 2024}
+\begin{document}
+
+\maketitle
+\tableofcontents 
+\section{Introduction}
+     \hspace{\parindent}In this paper, we use the publicly available GSE157103 gene data set found in 'Large-Scale Multi-omic Analysis of COVID-19 Severity' to conduct an analysis on the gene expression of ABCA3 and how its expression differs based on different covariates such as age, sex, ICU status, and COVID-19 disease status. For background, the GSE157103 gene data set consists of RNA-seq and high-resolution mass spectrometry data of 128 different blood samples from COVID-19-positive and COVID-19-negative patients \cite{Overmyer2021}. 219 different molecular features, including ABCA3 gene expression, that are known to be correlated with COVID-19 status and severity were mapped to understand how individuals respond to disease on a molecular level. Categorical and continuous characteristics regarding the patient health status and the blood sample such as patient age, charleson score, hospital free days, and ventilator free days were also documented in the dataset. 
+        
+         The ABCA3 gene is responsible for providing instructions to proteins involved in lung surfactant production. This surfactant can be found in the lining of lung tissue and comprises a mixture of phospholipids and proteins. The function of surfactant is to help humans breathe more easily by preventing the alveoli, air sacs in the lung, from sticking together after exhalation. In ‘ABCA3 and LZTFL1 Polymorphisms and Risk of COVID-19 in the Czech Population’, it was documented that ABCA3 plays a vital role in proper lung function and that it is highly plausible that lower levels of ABCA3 could be a contributor to COVID-19 susceptibility or severity\cite{Hubacek2023}.  In this analysis we will further investigate the gene expression of ABCA3 among the 128 samples found in this dataset. 
+         
+\section{Methods}
+
+\hspace{\parindent} Methods regarding sample collection and analysis of the GSE157103 gene data samples can be found in the paper "Large-Scale
+Multi-Omic Analysis of COVID-19 Severity". \cite{Overmyer2021}
+
+The entire analysis of this project was conducted in RStudio 2024.04.2+764 for macOS. The packages used for data wrangling anddata table formatting were dplyr and tidyverse\cite{Dplyr}\cite{TidyVerse}. 
+
+The analysis began by loading the BS103-GSE157103-series-matrix.csv and QBS103-GSE157103-genes.csv files found on the QBS 103 Canvas page into RStudio. Both CSV files were loaded into data frames, and the genes data was transposed and merged with the series matrix by participant ID to create a complete dataset that included both gene expression and co-variate data for each participant.
+
+A summary table of summary statistics for age, hospital free days post-45 day follow-up, ventilator-free days, ICU status, and disease status stratified by sex was generated using the percent of unique categorical values, mean, sum, median, and IQR functions found in the tableone package \cite{TableOne}. Mean/Standard Deviation or Median/IQR statistics were selected to summarize the continuous variables after using the histogram function in base R to check the distribution of the values in each of the variables. Mean and standard deviation was used for age due to the normal distribution of the values, and median and IQR was used for hospital free days post-45 day follow-up and ventilator free days due to the non- normal distribution of values. All continuous variables were converted to numeric format for analysis. The table was formatted in LaTeX using the kableExtra package \cite{Kable}.
+
+To generate the histogram of ABCA3 gene expression, scatter plot of ABCA3 gene expression by age, and boxplot of ABCA3 gene expression by sex and ICU status, the ggplot2 package was utilized \cite{ggplot2}. Additionally, a Bee Swarm plot was generated using the ggplot2 and ggbeeswarm packages to create a plot of ABCA3 gene expression based on the interaction of sex and ICU status of patients \cite{BeeSwarm}.
+
+The heat map of genes ABAT, ABCA1, ABCA10, ABCA12, ABCA13, ABCA2, ABCA3, ABCA4, ABCA5, ABCA6, and ABCA7 was generated using the pheatmap package in R \cite{Pheatmap}. The heat map was annotated by including tracking bars for patient sex and ICU status. The clustering algorithm used to cluster the heat map rows and columns by distance was the euclidean clustering method. 
+
+\section{Results}
+\subsection{Table of Summary Statistics}
+   \hspace{\parindent} The table includes summary statistics of categorical variables ICU status and COVID-19 disease status, and continuous variables age, hospital free days post 45 day follow up, and ventilator free days grouped by patient sex (Table \ref{table:table}).
+\begin{table}[h]
+\caption{Summary Table}
+\centering
+\begin{tabular}{lrrr}
+\toprule
+  & Female (N=51) & Male (N=74) & Unknown (N=1) \\
+\midrule
+Age &  &  &  \\
+\hspace{1em}Mean (SD) & 59.9 (18.3) & 62.7 (14.7) & NA \\
+\addlinespace
+Hospital Free Days &  &  &  \\
+\hspace{1em}Median [Min, Max] & 34.0 [0, 44.0] & 28.0 [0, 44.0] & 30.0 [30.0, 30.0] \\
+\addlinespace
+Ventilator Free Days &  &  &  \\
+\hspace{1em}Median [Min, Max] & 28.0 [0, 28.0] & 28.0 [0, 28.0] & 28.0 [28.0, 28.0] \\
+\addlinespace
+ICU\_Status &  &  &  \\
+\hspace{1em}No & 27 (52.9\%) & 33 (44.6\%) & 0 (0\%) \\
+\hspace{1em}Yes & 24 (47.1\%) & 41 (55.4\%) & 1 (100\%) \\
+\addlinespace
+Disease\_Status &  &  &  \\
+\hspace{1em}COVID-19 & 38 (74.5\%) & 62 (83.8\%) & 0 (0\%) \\
+\hspace{1em}Non-COVID-19 & 13 (25.5\%) & 12 (16.2\%) & 1 (100\%) \\
+\bottomrule
+\label{table:table}
+\end{tabular}
+\end{table}
+
+  
+\subsection{Histogram of ABCA3 Gene Expression}
+\hspace{\parindent}The histogram of gene ABCA3 shows the frequency of gene expression values (Figure \ref{fig:histogram}).
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{histogram.png}
+    \caption{Histogram of ABCA3 gene expression }
+    \label{fig:histogram}
+\end{figure}
+
+
+\subsection{Scatter Plot of Gene Expression and Age}
+\hspace{\parindent}The scatter plot of ABCA3 gene expression by age is colored by patient age group (Figure \ref{fig:scatterplot}). ABCA3 gene expression does not appear to be associated with age as there are no visible trends or clusters for any age group. 
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{Scatterplot.png}
+    \caption{Scatter Plot of Gene Expression and Age}
+    \label{fig:scatterplot}
+\end{figure}
+
+
+\subsection{Heatmap of 10 Genes by Sex and ICU Status}
+\hspace{\parindent} The heatmap of genes ABAT, ABCA1, ABCA10, ABCA12, ABCA13, ABCA2, ABCA3, ABCA4, ABCA5, ABCA6, and ABCA7 shows gene expression values clustered for each patient in the dataset (Figure \ref{fig:heatmap}). The plot includes tracking bars for patient ICU status and sex. The histogram above does not appear to show any clear association between the gene expression of the different genes or categorical variables (ICU status and sex) among patients.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Heatmap2.png}
+    \caption{Heatmap of genes ABAT, ABCA1, ABCA10, ABCA12, ABCA13, ABCA2, ABCA3, ABCA4, ABCA5, ABCA6, and ABCA7 }
+    \label{fig:heatmap}
+\end{figure}
+
+\subsection{Box plot of Gene Stratified by Sex and ICU Status}
+    \hspace{\parindent}The box plot shows ABCA3 gene expression by sex and ICU status (Figure \ref{fig:boxplot}). While it does not appear that sex is associated with ABCA3 gene expression, there appears to be higher expression of the gene among patients not in the ICU compared to those who are in the ICU.
+      \begin{figure}
+            \centering
+            \includegraphics[width=1.0\linewidth]{boxplot2.png}
+            \caption{Box plot of Gene by Sex and ICU Status}
+            \label{fig:boxplot}
+        \end{figure}
+  
+        
+\subsection{Bee Swarm Plot of Gene by Sex and ICU Status Interaction}      
+    \hspace{\parindent}The bee swarm plot shows ABCA3 gene expression based on the interaction of sex and ICU status of patients (Figure \ref{fig:beeswarm}). In this plot, it appears that gene expression of ABCA3 is highest among female and male patients who are not in the ICU compared to female and male patients who are in the ICU. 
+    \begin{figure}
+        \centering
+        \includegraphics[width=1.0\linewidth]{BeeSwarm2.png}
+        \caption{Bee Swarm Plot of Gene by Sex and ICU Status}
+        \label{fig:beeswarm}
+    \end{figure}
+
+\bibliographystyle{plain}
+\bibliography{Annotations1}
+
+\end{document}
