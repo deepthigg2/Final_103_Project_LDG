@@ -1,5 +1,5 @@
 ---
-title: "Submission_2_103"
+title: "Final_Submision_103"
 output: pdf_document
 ---
 
@@ -26,10 +26,10 @@ TGenes$participant_id <- row.names(TGenes)
 MergedGenes <- merge(TGenes,Genes_Series, by = 'participant_id', all = TRUE) 
 row.names(MergedGenes) <- MergedGenes$participant_id
 
-# change ICU status values for proper formatting
+# change ICU status values for proper formatting of clean tables/plots
 MergedGenes$icu_status[MergedGenes$icu_status =='no'] = 'No'
 MergedGenes$icu_status[MergedGenes$icu_status =='yes'] = 'Yes'
-# change sex values for proper formatting
+# change sex values for proper formatting of clean tables/plots
 MergedGenes$sex[MergedGenes$sex=='female'] = 'Female'
 MergedGenes$sex[MergedGenes$sex =='male'] = 'Male'
 MergedGenes$sex[MergedGenes$sex =='unknown'] = 'Unknown'
@@ -40,25 +40,13 @@ total). (5 pts)
 o Stratifying by one of your categorical variables
 o Tables should report n (%) for categorical variables
 o Tables should report mean (sd) or median [IQR] for continuous variables
-
-Generate final histogram, scatter plot, and boxplot from submission 1 (i.e. only for your
-first gene of interest) incorporating all feedback from your presentations (5 pts)
-Generate a heatmap (5 pts)
-o Heatmap should include at least 10 genes
-o Include tracking bars for the 2 categorical covariates in your boxplot
-o Heatmaps should include clustered rows and columns
-
-Going through the documentation for
-ggplot2, generate a plot type that we did not
-previously discuss in class that describes your data in a new and unique way
-
 ```{r}
 
 # load in libraries
 library(dplyr)
 library(tidyverse)
 
-# create a subiset of df with necesarry continours and categorical variables 
+# create a subset of df with necessary continuous and categorical variables 
 Genes_CoVariate_Data_3_3 <- MergedGenes %>%
    select(age, sex,icu_status,disease_status,`hospital-free_days_post_45_day_followup`,`ventilator-free_days`) 
 # convert the >89 age to 90 years old
@@ -91,15 +79,9 @@ print(ventilator_free_days)
 
 ```
 
-Generate a table formatted in LaTeX of summary statistics for all the covariates you
-looked at and 2 additional continuous (3 total) and 1 additional categorical variable (3
-total). (5 pts)
-o Stratifying by one of your categorical variables
-o Tables should report n (%) for categorical variables
-o Tables should report mean (sd) or median [IQR] for continuous variables
+
 
 ```{r}
-
 
 library(kableExtra)
 library(table1)
@@ -108,19 +90,9 @@ library(table1)
 
 # change col names
 names(Genes_CoVariate_Data_3_3) <- c('Age',"Sex","ICU_Status", "Disease_Status","Hospital_Free_Days_Post_45_Day_Followup", "Ventilator_Free_Days")
-
 # change disease status values 
-Genes_CoVariate_Data_3_3$disease_status[Genes_CoVariate_Data_3_3$disease_status =='disease state: non-COVID-19'] = 'Non-COVID-19'
-Genes_CoVariate_Data_3_3$disease_status[Genes_CoVariate_Data_3_3$disease_status =="disease state: COVID-19"] = 'COVID-19'
-
-# change ICU status values 
-Genes_CoVariate_Data_3_3$ICU_Status[Genes_CoVariate_Data_3_3$ICU_Status =='no'] = 'No'
-Genes_CoVariate_Data_3_3$ICU_Status[Genes_CoVariate_Data_3_3$ICU_Status =='yes'] = 'Yes'
-
-# change sex values 
-Genes_CoVariate_Data_3_3$Sex[Genes_CoVariate_Data_3_3$Sex =='female'] = 'Female'
-Genes_CoVariate_Data_3_3$Sex[Genes_CoVariate_Data_3_3$Sex =='male'] = 'Male'
-Genes_CoVariate_Data_3_3$Sex[Genes_CoVariate_Data_3_3$Sex =='unkown'] = 'Unknown'
+Genes_CoVariate_Data_3_3$Disease_Status[Genes_CoVariate_Data_3_3$Disease_Status =='disease state: non-COVID-19'] = 'Non-COVID-19'
+Genes_CoVariate_Data_3_3$Disease_Status[Genes_CoVariate_Data_3_3$Disease_Status =="disease state: COVID-19"] = 'COVID-19'
 
 
 # create a function that specifies what parameters to include for continuous values in the table1 generated summary statistics table 
@@ -140,34 +112,30 @@ render_Calc<- function(x, namecol, ...) {
 Sum_Tab <-table1(~Age+ `Hospital_Free_Days_Post_45_Day_Followup`+ `Ventilator_Free_Days` + ICU_Status+ Disease_Status| Sex, data=Genes_CoVariate_Data_3_3, render.missing = NULL, overall= F, render= render_Calc)
 Sum_Tab
 
-
 # use kable() to generate latex format of summary statistics table 
 tab <- kable(x = Sum_Tab, caption = 'Summary Table',
              format = 'latex',booktabs = T,
             # col.names = c("Female", "Male","Unknown", "Overall"),
              align = c('l','r'),escape = T) %>%
   add_indent(positions = c(3,4),level_of_indent = 1)
-tab
 
 ```
 
 Generate final histogram, scatter plot, and boxplot from submission 1 (i.e. only for your
-first gene of interest) incorporating all feedback from your presentations (5 pts)
-
+first gene of interest) incorporating all feedback from your presentations)
 ```{r}
 library(dplyr)
 library(ggplot2)
 
 # function to generate final histogram, scatter plot, and boxplot from submission 1
 GenePlots <- function(df, geneName, Cont, Cat1, Cat2) {
-  # Pull out gene expression data, continuous covariate, and categorical data
+  # Pull out gene expression data, continuous co variate, and categorical data
   geneName <- geneName[[1]]  # Assumes geneName is a single-element list
   Genes_CoVariate_Data <- df %>%
     select(all_of(c(geneName, Cont, Cat1, Cat2))) %>%
     as.data.frame()
   # Convert gene expression column to numeric
   Genes_CoVariate_Data[[geneName]] <- as.numeric(Genes_CoVariate_Data[[geneName]])
-  
   # Plot histogram of gene expression data
   histograms <- hist(Genes_CoVariate_Data[[geneName]], 
       main = paste(geneName, 'Gene Expression Data'), xlab = 'Gene Expression', col = "light blue")
@@ -222,31 +190,21 @@ o Heatmaps should include clustered rows and columns
 ``` {r}
 library(pheatmap)
 
-# Prepare annotation data
-
-# change ICU status values for proper formatting
-MergedGenes$icu_status[MergedGenes$icu_status =='no'] = 'No'
-MergedGenes$icu_status[MergedGenes$icu_status =='yes'] = 'Yes'
-# change sex values for proper formatting
-MergedGenes$sex[MergedGenes$sex=='female'] = 'Female'
-MergedGenes$sex[MergedGenes$sex =='male'] = 'Male'
-MergedGenes$sex[MergedGenes$sex =='unknown'] = 'Unknown'
-
-
-# save annotation data extracting sex and ice_status col info 
+# create annotation row data by extracting sex and ice_status col data
 annotation_rows<- data.frame(
   Sex = MergedGenes$sex,
   ICU_Status = MergedGenes$icu_status
 )
+
 # make row names of original table and annotation_rows table same 
 rownames(annotation_rows) <- rownames(MergedGenes)
 
 #create a color list for each of the values in in sex
 color1 <- c( "Male" = "blue","Female" = "pink", "Unknown" = "gray")
-#create a color list for each of the values in in icu)status
+#create a color list for each of the values in icu status
 color2 <- c("Yes" = 'yellow', "No" = 'green')
 
-# assign color list to categorical varaibles 
+# assign color list to categorical variables 
 annotation_colorss <- list(
   Sex = color1,
   ICU_Status = color2
@@ -255,14 +213,14 @@ annotation_colorss <- list(
 #Use apply function to convert all 10 selected gene columns to numeric format
 Genes_numeric_df<- as.data.frame(apply(MergedGenes[,31:41],MARGIN = 2, function(x) {as.numeric(x)}))
 
-# make rown ames of original table and 10 genes subset table same 
+# make row names of original table and 10 genes subset table same 
 row.names(Genes_numeric_df) <- rownames(MergedGenes)
 
-# generate heatmap and turn clustering and add annotations for sex and icu_status
+# generate heat map and cluster rows and cols by euclidean algorithm, and add annotations for sex and icu_status
 pheatmap(mat=Genes_numeric_df,
          show_rownames = F,
-         cluster_rows = T,
-         cluster_cols = T,
+         clustering_distance_cols = 'euclidean',
+         clustering_distance_rows = 'euclidean',
          annotation_row = annotation_rows,
          annotation_colors = annotation_colorss)
 
@@ -273,20 +231,28 @@ previously discuss in class that describes your data in a new and unique way
 
 ```{r}
 
-# create a 
+# create a subset of data with gene of interest, age, sex, and icu status
 Genes_CoVariate_Data <- MergedGenes %>%
   select(ABCA3,age,sex,icu_status) 
 
 #install.packages("ggbeeswarm")
+
+#load ggbeeswarm package
 library(ggbeeswarm)
+
+# ensure gene expression data is numeric
 Genes_CoVariate_Data$ABCA3 <- as.numeric(Genes_CoVariate_Data$ABCA3 )
-# Create a swarm plot with 
+
+# Create a swarm plot with age, sex, and icu_status
 ggplot(Genes_CoVariate_Data, aes(x = interaction(sex, icu_status), y = ABCA3, color = interaction(sex, icu_status))) +
+  # change point size
   geom_beeswarm(alpha = 1) +
+  #change main, x, and y axis titles
   labs(title = "Beeswarm Plot of ABCA3 Gene Expression by Sex and ICU Status", 
        x = "Sex and ICU Status", 
-       y = "Gene Expression", color= "Sex and ICU Status (sex.icu_status)") +
+       y = "Gene Expression", color= "Sex and ICU Status (Sex.ICU_Status)") +
   theme_minimal()
+
 ```
 
 
